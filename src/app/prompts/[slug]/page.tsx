@@ -1,10 +1,11 @@
-import { prompts } from "@/lib/data";
+import { getAllPrompts, getPromptBySlug } from "@/lib/prompts";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { CopyButton } from "@/components/CopyButton";
 
 export async function generateStaticParams() {
+  const prompts = getAllPrompts();
   return prompts.map((prompt) => ({
     slug: prompt.slug,
   }));
@@ -12,7 +13,7 @@ export async function generateStaticParams() {
 
 export default async function PromptDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
-  const prompt = prompts.find((p) => p.slug === resolvedParams.slug);
+  const prompt = getPromptBySlug(resolvedParams.slug);
 
   if (!prompt) {
     return notFound();
@@ -30,7 +31,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
                <div className="flex-1">
                    <div className="flex items-center gap-3 mb-4">
-                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider">
                         {prompt.category}
                       </span>
                       {prompt.tags.map(tag => (
