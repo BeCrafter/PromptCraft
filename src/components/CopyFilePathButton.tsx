@@ -2,33 +2,34 @@
 import { useState, useEffect } from "react";
 import { CopyButton } from "./CopyButton";
 
-interface CopyUrlButtonProps {
+interface CopyFilePathButtonProps {
   slug: string;
   className?: string;
 }
 
-export const CopyUrlButton = ({ slug, className }: CopyUrlButtonProps) => {
-  const [fullUrl, setFullUrl] = useState("");
+export const CopyFilePathButton = ({ slug, className }: CopyFilePathButtonProps) => {
+  const [fileUrl, setFileUrl] = useState("");
 
   useEffect(() => {
     // 在客户端获取完整 URL
     if (typeof window !== "undefined") {
-      // 对多级路径的每个段进行 URL 编码，以支持中文、空格、表情等特殊字符
+      // 构建原始文件访问 URL
+      // 例如: /raw/coding/技术栈/技术栈1/.../novel-writer
       const encodedSlug = slug.split('/').map(segment => encodeURIComponent(segment)).join('/');
-      const url = `${window.location.origin}/prompts/${encodedSlug}`;
-      setFullUrl(url);
+      const url = `${window.location.origin}/raw/${encodedSlug}`;
+      setFileUrl(url);
     }
   }, [slug]);
 
-  if (!fullUrl) {
+  if (!fileUrl) {
     return null;
   }
 
   return (
     <CopyButton 
-      text={fullUrl} 
+      text={fileUrl} 
       variant="button" 
-      label="Copy Prompt Link" 
+      label="Copy Path" 
       className={className} 
     />
   );

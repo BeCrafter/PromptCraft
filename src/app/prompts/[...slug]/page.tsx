@@ -4,14 +4,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { CopyButton } from "@/components/CopyButton";
-import { CopyUrlButton } from "@/components/CopyUrlButton";
+import { CopyFilePathButton } from "@/components/CopyFilePathButton";
 import { ArrowLeft, Tag, User, Layers, BookOpen, ChevronLeft, ChevronRight, Link as LinkIcon } from "lucide-react";
 
 export async function generateStaticParams() {
   const prompts = getAllPrompts();
   return prompts.map((prompt) => {
-    // 将 "coding/js-expert-copy" 转换为 ["coding", "js-expert-copy"]
-    const slugArray = prompt.slug.split('/');
+    // 将 "coding/技术栈/技术栈1/..." 转换为 ["coding", "技术栈", "技术栈1", ...]
+    // 对每个路径段进行 URL 编码，以支持中文、空格、表情等特殊字符
+    const slugArray = prompt.slug.split('/').map(segment => encodeURIComponent(segment));
     return {
       slug: slugArray,
     };
@@ -20,8 +21,11 @@ export async function generateStaticParams() {
 
 export default async function PromptDetailPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const resolvedParams = await params;
-  // 将数组拼接回字符串，如 ["coding", "js-expert-copy"] -> "coding/js-expert-copy"
-  const slug = Array.isArray(resolvedParams.slug) ? resolvedParams.slug.join('/') : resolvedParams.slug;
+  // 将数组拼接回字符串，如 ["coding", "%E6%8A%80%E6%9C%AF%E6%A0%88", ...] -> "coding/技术栈/..."
+  // 对每个路径段进行 URL 解码，以支持中文、空格、表情等特殊字符
+  const slug = Array.isArray(resolvedParams.slug) 
+    ? resolvedParams.slug.map(segment => decodeURIComponent(segment)).join('/')
+    : decodeURIComponent(resolvedParams.slug);
   const prompt = getPromptBySlug(slug);
 
   if (!prompt) {
@@ -30,6 +34,19 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
 
   const { prev, next } = getAdjacentPrompts(slug);
   const authorProfile = getAuthorProfile(prompt.author || "BeCrafter Team");
+
+  // 格式化路径显示：分离路径和文件名，长路径时截断中间部分
+  const formatPathForDisplay = (fullPath: string) => {
+    const parts = fullPath.split('/');
+    if (parts.length <= 1) {
+      return { pathParts: [], fileName: parts[0] || fullPath };
+    }
+    const fileName = parts[parts.length - 1];
+    const pathParts = parts.slice(0, -1);
+    return { pathParts, fileName };
+  };
+
+  const { pathParts, fileName } = formatPathForDisplay(prompt.slug);
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-blue-500/30">
@@ -53,13 +70,25 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
             
             {/* Header Section (Title & Desc) */}
             <div>
-               <div className="flex items-center gap-3 mb-6">
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider flex items-center gap-1">
+               <div className="flex items-center gap-2 mb-6 min-w-0 w-full overflow-hidden">
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider flex items-center gap-1 flex-shrink-0">
                     <Layers className="w-3 h-3" />
                     {prompt.category}
                   </span>
-                  <span className="text-neutral-600">/</span>
-                  <span className="text-neutral-400 text-sm font-mono">{prompt.slug}</span>
+                  <span className="text-neutral-600 flex-shrink-0">/</span>
+                  {/* 路径部分（可截断） */}
+                  {pathParts.length > 0 && (
+                    <span className="text-neutral-400 text-sm font-mono overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
+                      {pathParts.join('/')}
+                    </span>
+                  )}
+                  {pathParts.length > 0 && (
+                    <span className="text-neutral-600 flex-shrink-0">/</span>
+                  )}
+                  {/* 文件名（不截断） */}
+                  <span className="text-neutral-400 text-sm font-mono flex-shrink-0 whitespace-nowrap">
+                    {fileName}
+                  </span>
                </div>
                <h1 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">
                  {prompt.title}
@@ -92,7 +121,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-8 border-t border-neutral-900">
                 {prev ? (
                   <Link 
-                    href={`/prompts/${prev.slug}`}
+                    href={`/prompts/${prev.slug.split('/').map(segment => encodeURIComponent(segment)).join('/')}`}
                     className="group p-4 rounded-lg border border-neutral-800 bg-neutral-900/20 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all"
                   >
                     <div className="text-xs text-neutral-500 mb-1 flex items-center gap-1">
@@ -104,7 +133,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
 
                 {next && (
                   <Link 
-                    href={`/prompts/${next.slug}`}
+                    href={`/prompts/${next.slug.split('/').map(segment => encodeURIComponent(segment)).join('/')}`}
                     className="group p-4 rounded-lg border border-neutral-800 bg-neutral-900/20 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all text-right"
                   >
                     <div className="text-xs text-neutral-500 mb-1 flex items-center justify-end gap-1">
@@ -119,23 +148,8 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
 
           {/* RIGHT COLUMN: Sticky Sidebar (4/12) */}
           <div className="lg:col-span-4">
-            <div className="sticky top-24 space-y-6">
+            <div className="sticky top-6 space-y-6">
                 
-                {/* Primary Action Card */}
-                <div className="p-5 rounded-xl bg-neutral-900/50 border border-neutral-800 backdrop-blur-sm">
-                    <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-blue-400" />
-                        Actions
-                    </h3>
-                    <div className="space-y-3">
-                        <CopyButton text={prompt.content} variant="button" label="Copy Full Prompt" className="w-full justify-center py-3" />
-                        <CopyUrlButton slug={slug} className="w-full justify-center py-3" />
-                    </div>
-                    <p className="text-xs text-center text-neutral-500 mt-3">
-                        Copy prompt content or shareable link
-                    </p>
-                </div>
-
                 {/* Metadata Card */}
                 <div className="p-5 rounded-xl bg-neutral-900/30 border border-neutral-800">
                     {/* Author Section with Config Data */}
@@ -165,17 +179,39 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
                     </div>
 
                     {/* Tags Section */}
-                    <div className="pt-6 border-t border-neutral-800">
-                        <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                    <div className="pt-6 border-t border-neutral-800 mb-6">
+                        <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
                             <Tag className="w-4 h-4 text-purple-400" />
                             Tags
                         </h3>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2 mb-0">
                             {prompt.tags.map(tag => (
                                 <Link key={tag} href={`/tags/${encodeURIComponent(tag)}`} className="px-2.5 py-1 rounded-md text-xs bg-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors border border-neutral-700/50">
                                     #{tag}
                                 </Link>
                             ))}
+                        </div>
+                    </div>
+
+                    {/* Actions Section */}
+                    <div className="pt-6 border-t border-neutral-800">
+                        <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                            <Layers className="w-4 h-4 text-blue-400" />
+                            Actions
+                        </h3>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <CopyButton 
+                                text={prompt.content} 
+                                variant="button" 
+                                label="Copy Prompt" 
+                                className="flex-1 justify-center min-w-0 text-xs px-3 py-1.5" 
+                            />
+                            {prompt.filePath && (
+                                <CopyFilePathButton 
+                                    slug={slug} 
+                                    className="flex-1 justify-center min-w-0 text-xs px-3 py-1.5" 
+                                />
+                            )}
                         </div>
                     </div>
                 </div>

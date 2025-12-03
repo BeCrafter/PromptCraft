@@ -112,7 +112,11 @@ export default async function AuthorPage({ params }: { params: Promise<{ name: s
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {prompts.map((prompt) => (
-                <Link href={`/prompts/${prompt.slug}`} key={prompt.slug} className="block group h-full">
+                <Link 
+                  href={`/prompts/${prompt.slug.split('/').map(segment => encodeURIComponent(segment)).join('/')}`} 
+                  key={prompt.slug} 
+                  className="block group h-full"
+                >
                 <div className="h-full p-6 rounded-2xl bg-[#0D0D0D] border border-neutral-800 hover:border-neutral-700 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-blue-900/10 flex flex-col relative overflow-hidden">
                     {/* Hover Gradient */}
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />

@@ -59,15 +59,44 @@ export const CopyButton = ({
         onClick={handleCopy}
         type="button"
         className={cn(
-          "relative z-50 px-4 py-2 rounded-full font-bold text-sm transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-green-500/20 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer",
+          "relative z-50 rounded-lg font-medium transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer overflow-hidden group",
           copied
-            ? "bg-green-500 text-white ring-2 ring-green-500 ring-offset-2 ring-offset-black"
-            : "bg-white text-black hover:bg-neutral-100",
+            ? "text-green-400 shadow-lg shadow-green-500/30"
+            : "text-neutral-200 hover:text-white active:scale-[0.98]",
           className
         )}
       >
-        {copied ? <Check size={16} strokeWidth={3} /> : <Copy size={16} strokeWidth={2.5} />}
-        {copied ? "Copied!" : label}
+        {/* 背景层 */}
+        <div className={cn(
+          "absolute inset-0 rounded-lg transition-all duration-300",
+          copied
+            ? "bg-gradient-to-br from-green-500/20 via-emerald-500/20 to-green-500/20"
+            : "bg-gradient-to-br from-neutral-800/90 to-neutral-900/90 group-hover:from-neutral-800 group-hover:to-neutral-800"
+        )}></div>
+        
+        {/* 边框 - 默认状态 */}
+        {!copied && (
+          <>
+            <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-neutral-700/60 to-neutral-600/60 opacity-60 group-hover:opacity-0 transition-opacity duration-300"></div>
+            <div className="absolute inset-[1px] rounded-lg bg-gradient-to-r from-blue-500/0 via-blue-500/30 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-[1px]"></div>
+            <div className="absolute inset-[1px] rounded-lg border border-blue-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </>
+        )}
+        
+        {/* 边框 - 复制成功状态 */}
+        {copied && (
+          <>
+            <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-green-500/50 via-emerald-500/50 to-green-500/50 animate-pulse"></div>
+            <div className="absolute inset-[1px] rounded-lg border border-green-500/60"></div>
+            <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-green-500/20 to-emerald-500/20 blur-sm"></div>
+          </>
+        )}
+        
+        {/* 内容 */}
+        <span className="relative z-10 flex items-center gap-1.5">
+          {copied ? <Check size={14} strokeWidth={2.5} className="text-green-400" /> : <Copy size={14} strokeWidth={2} />}
+          <span className="text-xs">{copied ? "Copied" : label}</span>
+        </span>
       </button>
     );
   }

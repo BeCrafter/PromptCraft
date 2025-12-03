@@ -152,7 +152,10 @@ export const PromptGallery = ({
                         transition={{ duration: 0.2 }}
                         >
                         <div className="group h-full relative">
-                            <Link href={`/prompts/${prompt.slug}`} className="absolute inset-0 z-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <Link 
+                              href={`/prompts/${prompt.slug.split('/').map(segment => encodeURIComponent(segment)).join('/')}`} 
+                              className="absolute inset-0 z-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                            />
                             
                             <div className="h-full p-6 rounded-2xl bg-neutral-900 border border-neutral-800 hover:border-neutral-700 transition-colors group-hover:bg-neutral-800/50 flex flex-col pointer-events-none">
                             <div className="flex justify-between items-start mb-4">
