@@ -1,4 +1,4 @@
-import { getAllPrompts, getPromptBySlug } from "@/lib/prompts";
+import { getAllPrompts, getPromptBySlug, getAdjacentPrompts } from "@/lib/prompts";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
@@ -18,6 +18,8 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
   if (!prompt) {
     return notFound();
   }
+
+  const { prev, next } = getAdjacentPrompts(resolvedParams.slug);
 
   return (
     <div className="min-h-screen bg-black text-white pt-24 pb-20">
@@ -81,6 +83,31 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
                     <p>Paste the customized prompt into ChatGPT, Claude, or Midjourney to generate your desired result.</p>
                 </div>
             </div>
+        </div>
+
+        {/* Prev/Next Navigation */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
+            {prev ? (
+              <Link 
+                href={`/prompts/${encodeURIComponent(prev.slug)}`}
+                className="group p-6 rounded-xl border border-neutral-800 bg-neutral-900/30 hover:bg-neutral-900 hover:border-neutral-700 transition-all text-left"
+              >
+                <div className="text-xs text-neutral-500 mb-2 uppercase tracking-wider group-hover:text-blue-400 transition-colors">← Previous</div>
+                <div className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors truncate">{prev.title}</div>
+              </Link>
+            ) : (
+              <div /> 
+            )}
+
+            {next && (
+              <Link 
+                href={`/prompts/${encodeURIComponent(next.slug)}`}
+                className="group p-6 rounded-xl border border-neutral-800 bg-neutral-900/30 hover:bg-neutral-900 hover:border-neutral-700 transition-all text-right"
+              >
+                <div className="text-xs text-neutral-500 mb-2 uppercase tracking-wider group-hover:text-blue-400 transition-colors">Next →</div>
+                <div className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors truncate">{next.title}</div>
+              </Link>
+            )}
         </div>
 
         {/* Footer */}

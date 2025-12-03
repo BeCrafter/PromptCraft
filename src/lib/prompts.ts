@@ -35,6 +35,8 @@ export function getAllPrompts(): Prompt[] {
       const filePath = path.join(categoryPath, file);
       const fileContents = fs.readFileSync(filePath, "utf8");
       const { data, content } = matter(fileContents);
+      
+      // 强制处理 Slug：去后缀 -> 替换空格为横杠
       const slug = file.replace(/\.md$/, "").replace(/\s+/g, '-');
 
       allPrompts.push({
@@ -55,6 +57,18 @@ export function getAllPrompts(): Prompt[] {
 export function getPromptBySlug(slug: string): Prompt | undefined {
   const allPrompts = getAllPrompts();
   return allPrompts.find((p) => p.slug === slug);
+}
+
+export function getAdjacentPrompts(slug: string): { prev?: Prompt; next?: Prompt } {
+  const allPrompts = getAllPrompts();
+  const index = allPrompts.findIndex((p) => p.slug === slug);
+
+  if (index === -1) return {};
+
+  const prev = index > 0 ? allPrompts[index - 1] : undefined;
+  const next = index < allPrompts.length - 1 ? allPrompts[index + 1] : undefined;
+
+  return { prev, next };
 }
 
 export function getAllCategories() {
