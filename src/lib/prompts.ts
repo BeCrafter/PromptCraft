@@ -35,7 +35,7 @@ export function getAllPrompts(): Prompt[] {
       const filePath = path.join(categoryPath, file);
       const fileContents = fs.readFileSync(filePath, "utf8");
       const { data, content } = matter(fileContents);
-      const slug = file.replace(/\.md$/, "");
+      const slug = file.replace(/\.md$/, "").replace(/\s+/g, '-');
 
       allPrompts.push({
         slug: slug,
@@ -69,3 +69,19 @@ export function getAllCategories() {
   ];
 }
 
+export function getAllTags(): string[] {
+  const prompts = getAllPrompts();
+  const tags = new Set<string>();
+  prompts.forEach(prompt => {
+    prompt.tags.forEach(tag => tags.add(tag));
+  });
+  return Array.from(tags);
+}
+
+export function getPromptsByTag(tag: string): Prompt[] {
+  const prompts = getAllPrompts();
+  const normalizedTag = decodeURIComponent(tag).toLowerCase();
+  return prompts.filter(prompt => 
+    prompt.tags.some(t => t.toLowerCase() === normalizedTag)
+  );
+}

@@ -35,7 +35,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
                         {prompt.category}
                       </span>
                       {prompt.tags.map(tag => (
-                          <span key={tag} className="text-xs text-neutral-500">#{tag}</span>
+                          <Link key={tag} href={`/tags/${tag}`} className="text-xs text-neutral-500 hover:text-blue-400 transition-colors">#{tag}</Link>
                       ))}
                    </div>
                    <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-neutral-500">

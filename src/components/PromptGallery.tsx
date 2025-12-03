@@ -71,26 +71,31 @@ export const PromptGallery = ({
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.2 }}
               >
-                <Link href={`/prompts/${prompt.slug}`} className="block group h-full">
-                  <div className="h-full p-6 rounded-2xl bg-neutral-900 border border-neutral-800 hover:border-neutral-700 transition-colors group-hover:bg-neutral-800/50">
+                <div className="group h-full relative">
+                  {/* Main Card Link */}
+                  <Link href={`/prompts/${encodeURIComponent(prompt.slug)}`} className="absolute inset-0 z-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  
+                  <div className="h-full p-6 rounded-2xl bg-neutral-900 border border-neutral-800 hover:border-neutral-700 transition-colors group-hover:bg-neutral-800/50 flex flex-col pointer-events-none">
                     <div className="flex justify-between items-start mb-4">
-                       <span className="px-2 py-1 rounded text-xs font-medium bg-neutral-800 text-neutral-400 border border-neutral-700 uppercase tracking-wider">
+                       <span className="px-2 py-1 rounded text-xs font-medium bg-neutral-800 text-neutral-400 border border-neutral-700 uppercase tracking-wider relative z-10">
                           {prompt.category}
                        </span>
                     </div>
-                    <h3 className="text-xl font-bold mb-2 text-neutral-100 group-hover:text-blue-400 transition-colors">
+                    <h3 className="text-xl font-bold mb-2 text-neutral-100 group-hover:text-blue-400 transition-colors relative z-10">
                       {prompt.title}
                     </h3>
-                    <p className="text-sm text-neutral-400 line-clamp-3 mb-4">
+                    <p className="text-sm text-neutral-400 line-clamp-3 mb-4 relative z-10">
                       {prompt.description}
                     </p>
-                    <div className="flex flex-wrap gap-2 mt-auto">
+                    <div className="flex flex-wrap gap-2 mt-auto pointer-events-auto relative z-20">
                       {prompt.tags.map(tag => (
-                          <span key={tag} className="text-xs text-neutral-500">#{tag}</span>
+                          <Link key={tag} href={`/tags/${tag}`} className="text-xs text-neutral-500 hover:text-blue-400 transition-colors hover:underline">
+                            #{tag}
+                          </Link>
                       ))}
                     </div>
                   </div>
-                </Link>
+                </div>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -99,4 +104,3 @@ export const PromptGallery = ({
     </div>
   );
 };
-
