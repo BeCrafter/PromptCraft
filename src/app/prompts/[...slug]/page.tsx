@@ -4,24 +4,31 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { CopyButton } from "@/components/CopyButton";
-import { ArrowLeft, Tag, User, Layers, BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
+import { CopyUrlButton } from "@/components/CopyUrlButton";
+import { ArrowLeft, Tag, User, Layers, BookOpen, ChevronLeft, ChevronRight, Link as LinkIcon } from "lucide-react";
 
 export async function generateStaticParams() {
   const prompts = getAllPrompts();
-  return prompts.map((prompt) => ({
-    slug: prompt.slug,
-  }));
+  return prompts.map((prompt) => {
+    // 将 "coding/js-expert-copy" 转换为 ["coding", "js-expert-copy"]
+    const slugArray = prompt.slug.split('/');
+    return {
+      slug: slugArray,
+    };
+  });
 }
 
-export default async function PromptDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function PromptDetailPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const resolvedParams = await params;
-  const prompt = getPromptBySlug(resolvedParams.slug);
+  // 将数组拼接回字符串，如 ["coding", "js-expert-copy"] -> "coding/js-expert-copy"
+  const slug = Array.isArray(resolvedParams.slug) ? resolvedParams.slug.join('/') : resolvedParams.slug;
+  const prompt = getPromptBySlug(slug);
 
   if (!prompt) {
     return notFound();
   }
 
-  const { prev, next } = getAdjacentPrompts(resolvedParams.slug);
+  const { prev, next } = getAdjacentPrompts(slug);
   const authorProfile = getAuthorProfile(prompt.author || "BeCrafter Team");
 
   return (
@@ -85,7 +92,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-8 border-t border-neutral-900">
                 {prev ? (
                   <Link 
-                    href={`/prompts/${encodeURIComponent(prev.slug)}`}
+                    href={`/prompts/${prev.slug}`}
                     className="group p-4 rounded-lg border border-neutral-800 bg-neutral-900/20 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all"
                   >
                     <div className="text-xs text-neutral-500 mb-1 flex items-center gap-1">
@@ -97,7 +104,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
 
                 {next && (
                   <Link 
-                    href={`/prompts/${encodeURIComponent(next.slug)}`}
+                    href={`/prompts/${next.slug}`}
                     className="group p-4 rounded-lg border border-neutral-800 bg-neutral-900/20 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all text-right"
                   >
                     <div className="text-xs text-neutral-500 mb-1 flex items-center justify-end gap-1">
@@ -120,28 +127,19 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
                         <Layers className="w-4 h-4 text-blue-400" />
                         Actions
                     </h3>
-                    <CopyButton text={prompt.content} variant="button" label="Copy Full Prompt" className="w-full justify-center py-3" />
+                    <div className="space-y-3">
+                        <CopyButton text={prompt.content} variant="button" label="Copy Full Prompt" className="w-full justify-center py-3" />
+                        <CopyUrlButton slug={slug} className="w-full justify-center py-3" />
+                    </div>
                     <p className="text-xs text-center text-neutral-500 mt-3">
-                        Click to copy raw markdown format
+                        Copy prompt content or shareable link
                     </p>
                 </div>
 
                 {/* Metadata Card */}
                 <div className="p-5 rounded-xl bg-neutral-900/30 border border-neutral-800">
-                    <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-                        <Tag className="w-4 h-4 text-purple-400" />
-                        Tags
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                        {prompt.tags.map(tag => (
-                            <Link key={tag} href={`/tags/${encodeURIComponent(tag)}`} className="px-2.5 py-1 rounded-md text-xs bg-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors border border-neutral-700/50">
-                                #{tag}
-                            </Link>
-                        ))}
-                    </div>
-
                     {/* Author Section with Config Data */}
-                    <div className="mt-6 pt-6 border-t border-neutral-800">
+                    <div className="mb-6">
                         <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
                             <User className="w-4 h-4 text-green-400" />
                             Author
@@ -164,6 +162,21 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
                                 {authorProfile.bio}
                             </p>
                         </Link>
+                    </div>
+
+                    {/* Tags Section */}
+                    <div className="pt-6 border-t border-neutral-800">
+                        <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                            <Tag className="w-4 h-4 text-purple-400" />
+                            Tags
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                            {prompt.tags.map(tag => (
+                                <Link key={tag} href={`/tags/${encodeURIComponent(tag)}`} className="px-2.5 py-1 rounded-md text-xs bg-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors border border-neutral-700/50">
+                                    #{tag}
+                                </Link>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
@@ -202,3 +215,4 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
     </div>
   );
 }
+

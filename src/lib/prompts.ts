@@ -34,11 +34,13 @@ export function getAllPrompts(): Prompt[] {
       const filePath = path.join(categoryPath, file);
       const fileContents = fs.readFileSync(filePath, "utf8");
       const { data, content } = matter(fileContents);
-      const slug = file.replace(/\.md$/, "").replace(/\s+/g, '-');
+      const baseSlug = file.replace(/\.md$/, "").replace(/\s+/g, '-');
+      // 生成包含 category 的唯一 slug，格式为 category/filename，避免不同分类下同名文件的冲突
+      const slug = `${category}/${baseSlug}`;
 
       allPrompts.push({
         slug: slug,
-        title: data.title || slug,
+        title: data.title || baseSlug,
         description: data.description || "",
         category: category,
         tags: data.tags || [],
