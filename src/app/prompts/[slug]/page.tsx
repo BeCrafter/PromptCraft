@@ -1,4 +1,5 @@
 import { getAllPrompts, getPromptBySlug, getAdjacentPrompts } from "@/lib/prompts";
+import { getAuthorProfile } from "@/lib/authors";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
@@ -21,6 +22,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
   }
 
   const { prev, next } = getAdjacentPrompts(resolvedParams.slug);
+  const authorProfile = getAuthorProfile(prompt.author || "BeCrafter Team");
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-blue-500/30">
@@ -132,25 +134,36 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
                     </h3>
                     <div className="flex flex-wrap gap-2">
                         {prompt.tags.map(tag => (
-                            <Link key={tag} href={`/tags/${tag}`} className="px-2.5 py-1 rounded-md text-xs bg-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors border border-neutral-700/50">
+                            <Link key={tag} href={`/tags/${encodeURIComponent(tag)}`} className="px-2.5 py-1 rounded-md text-xs bg-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors border border-neutral-700/50">
                                 #{tag}
                             </Link>
                         ))}
                     </div>
 
+                    {/* Author Section with Config Data */}
                     <div className="mt-6 pt-6 border-t border-neutral-800">
                         <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
                             <User className="w-4 h-4 text-green-400" />
                             Author
                         </h3>
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold">
-                                {prompt.author?.[0] || "B"}
+                        <Link href={`/author/${encodeURIComponent(authorProfile.name)}`} className="group block">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-sm font-bold ring-2 ring-black group-hover:ring-blue-500 transition-all">
+                                    {authorProfile.name[0].toUpperCase()}
+                                </div>
+                                <div>
+                                    <div className="text-sm font-medium text-white group-hover:text-blue-400 transition-colors">
+                                        {authorProfile.name}
+                                    </div>
+                                    <div className="text-xs text-neutral-500">
+                                        {authorProfile.role}
+                                    </div>
+                                </div>
                             </div>
-                            <div className="text-sm text-neutral-300">
-                                {prompt.author || "BeCrafter Team"}
-                            </div>
-                        </div>
+                            <p className="text-xs text-neutral-400 line-clamp-2 group-hover:text-neutral-300 transition-colors">
+                                {authorProfile.bio}
+                            </p>
+                        </Link>
                     </div>
                 </div>
 

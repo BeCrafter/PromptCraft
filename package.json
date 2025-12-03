@@ -9,10 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@types/js-yaml": "^4.0.9",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.25",
     "fuse.js": "^7.1.0",
     "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.1",
     "lucide-react": "^0.555.0",
     "mermaid": "^11.12.1",
     "mini-svg-data-uri": "^1.4.4",

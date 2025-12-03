@@ -15,7 +15,6 @@ export interface Prompt {
 const contentDirectory = path.join(process.cwd(), "content");
 
 export function getAllPrompts(): Prompt[] {
-  // 确保 content 目录存在
   if (!fs.existsSync(contentDirectory)) {
     console.warn("Content directory not found at:", contentDirectory);
     return [];
@@ -35,8 +34,6 @@ export function getAllPrompts(): Prompt[] {
       const filePath = path.join(categoryPath, file);
       const fileContents = fs.readFileSync(filePath, "utf8");
       const { data, content } = matter(fileContents);
-      
-      // 强制处理 Slug：去后缀 -> 替换空格为横杠
       const slug = file.replace(/\.md$/, "").replace(/\s+/g, '-');
 
       allPrompts.push({
@@ -97,5 +94,24 @@ export function getPromptsByTag(tag: string): Prompt[] {
   const normalizedTag = decodeURIComponent(tag).toLowerCase();
   return prompts.filter(prompt => 
     prompt.tags.some(t => t.toLowerCase() === normalizedTag)
+  );
+}
+
+export function getAllAuthors(): string[] {
+  const prompts = getAllPrompts();
+  const authors = new Set<string>();
+  prompts.forEach(prompt => {
+    if (prompt.author) {
+      authors.add(prompt.author);
+    }
+  });
+  return Array.from(authors);
+}
+
+export function getPromptsByAuthor(author: string): Prompt[] {
+  const prompts = getAllPrompts();
+  const normalizedAuthor = decodeURIComponent(author).toLowerCase();
+  return prompts.filter(prompt => 
+    prompt.author && prompt.author.toLowerCase() === normalizedAuthor
   );
 }

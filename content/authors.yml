@@ -1,0 +1,10 @@
+authors:
+  - name: Sean
+    role: Prompt Architect
+    bio: Full-stack developer and AI enthusiast. Specializing in structured prompts and system design. Creator of the BeCrafter library.
+    social:
+      github: https://github.com/sean
+  
+  - name: AI
+    role: Synthetic Intelligence
+    bio: An experimental persona generating prompts for testing and validation purposes.
