@@ -90,64 +90,98 @@ if (fs.existsSync(contentDir)) {
   console.log('⚠️  content directory not found, skipping raw route generation');
 }
 
-// 3. 处理标签页面的双重编码问题
+// 3. 处理动态路由的双重编码问题
 // GitHub Pages 可能会对 URL 进行再次编码，导致双重编码
-// 我们需要为标签页面创建双重编码的路径副本
-console.log('🔧 Fixing tag page paths for GitHub Pages...');
+// 我们需要为包含编码字符的路径创建双重编码的路径副本
+console.log('🔧 Fixing dynamic route paths for GitHub Pages...');
 
+// 递归复制目录的通用函数
+function copyDirectoryRecursive(src, dest) {
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
+  }
+  
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+  
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    
+    if (entry.isDirectory()) {
+      copyDirectoryRecursive(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
+// 递归处理包含编码字符的目录
+function processEncodedDirectories(dir, basePath = '') {
+  if (!fs.existsSync(dir)) {
+    return;
+  }
+  
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    
+    if (entry.isDirectory()) {
+      // 检查目录名是否包含编码字符（%）
+      if (entry.name.includes('%')) {
+        // 对目录名进行双重编码（将 % 编码为 %25）
+        const doubleEncodedName = entry.name.replace(/%/g, '%25');
+        const doubleEncodedPath = path.join(dir, doubleEncodedName);
+        
+        // 如果双重编码的路径不存在，创建它
+        if (doubleEncodedName !== entry.name && !fs.existsSync(doubleEncodedPath)) {
+          // 复制整个目录
+          copyDirectoryRecursive(fullPath, doubleEncodedPath);
+          const displayPath = basePath ? `${basePath}/${entry.name}` : entry.name;
+          console.log(`  ✓ Created double-encoded path: ${displayPath} -> ${doubleEncodedName}`);
+        }
+      }
+      
+      // 递归处理子目录
+      const newBasePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+      processEncodedDirectories(fullPath, newBasePath);
+    }
+  }
+}
+
+// 处理标签页面
 const tagsDir = path.join(outDir, 'tags');
 if (fs.existsSync(tagsDir)) {
-  // 递归处理所有标签目录
-  function processTagDirectories(dir) {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-    
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name);
-      
-      if (entry.isDirectory()) {
-        // 检查目录名是否包含编码字符（%）
-        if (entry.name.includes('%')) {
-          // 对目录名进行双重编码（将 % 编码为 %25）
-          const doubleEncodedName = entry.name.replace(/%/g, '%25');
-          const doubleEncodedPath = path.join(dir, doubleEncodedName);
-          
-          // 如果双重编码的路径不存在，创建它
-          if (!fs.existsSync(doubleEncodedPath)) {
-            // 复制整个目录
-            copyDirectoryRecursive(fullPath, doubleEncodedPath);
-            console.log(`  ✓ Created double-encoded path: ${entry.name} -> ${doubleEncodedName}`);
-          }
-        }
-        
-        // 递归处理子目录
-        processTagDirectories(fullPath);
-      }
-    }
-  }
-  
-  // 递归复制目录
-  function copyDirectoryRecursive(src, dest) {
-    if (!fs.existsSync(dest)) {
-      fs.mkdirSync(dest, { recursive: true });
-    }
-    
-    const entries = fs.readdirSync(src, { withFileTypes: true });
-    
-    for (const entry of entries) {
-      const srcPath = path.join(src, entry.name);
-      const destPath = path.join(dest, entry.name);
-      
-      if (entry.isDirectory()) {
-        copyDirectoryRecursive(srcPath, destPath);
-      } else {
-        fs.copyFileSync(srcPath, destPath);
-      }
-    }
-  }
-  
-  processTagDirectories(tagsDir);
+  processEncodedDirectories(tagsDir, 'tags');
   console.log('✅ Fixed tag page paths for GitHub Pages');
 } else {
   console.log('⚠️  tags directory not found, skipping tag path fix');
+}
+
+// 处理提示词页面
+const promptsDir = path.join(outDir, 'prompts');
+if (fs.existsSync(promptsDir)) {
+  processEncodedDirectories(promptsDir, 'prompts');
+  console.log('✅ Fixed prompt page paths for GitHub Pages');
+} else {
+  console.log('⚠️  prompts directory not found, skipping prompt path fix');
+}
+
+// 处理作者页面
+const authorDir = path.join(outDir, 'author');
+if (fs.existsSync(authorDir)) {
+  processEncodedDirectories(authorDir, 'author');
+  console.log('✅ Fixed author page paths for GitHub Pages');
+} else {
+  console.log('⚠️  author directory not found, skipping author path fix');
+}
+
+// 处理 raw 路由（虽然 raw 路由的文件是在 postbuild 中生成的，但如果有嵌套路径也需要处理）
+const rawDir = path.join(outDir, 'raw');
+if (fs.existsSync(rawDir)) {
+  processEncodedDirectories(rawDir, 'raw');
+  console.log('✅ Fixed raw route paths for GitHub Pages');
+} else {
+  console.log('⚠️  raw directory not found, skipping raw path fix');
 }
 

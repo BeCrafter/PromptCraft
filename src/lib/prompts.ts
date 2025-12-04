@@ -158,7 +158,8 @@ export function getAllAuthors(): string[] {
 
 export function getPromptsByAuthor(author: string): Prompt[] {
   const prompts = getAllPrompts();
-  const normalizedAuthor = decodeURIComponent(author).toLowerCase();
+  // author 参数应该已经是解码后的字符串，直接使用
+  const normalizedAuthor = author.toLowerCase();
   return prompts.filter(prompt => 
     prompt.author && prompt.author.toLowerCase() === normalizedAuthor
   );

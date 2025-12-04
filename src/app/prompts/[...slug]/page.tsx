@@ -7,26 +7,76 @@ import { CopyButton } from "@/components/CopyButton";
 import { CopyFilePathButton } from "@/components/CopyFilePathButton";
 import { ArrowLeft, Tag, User, Layers, BookOpen, ChevronLeft, ChevronRight, Link as LinkIcon } from "lucide-react";
 import type { Metadata } from "next";
+import { doubleEncodePath, doubleEncodeURIComponent } from "@/lib/utils";
+
+/**
+ * 安全地解码可能被编码或双重编码的路径段
+ * 处理 GitHub Pages 可能导致的编码问题
+ */
+function safeDecodeSegment(encodedSegment: string): string {
+  try {
+    // 如果参数不包含 %，说明没有被编码，直接返回
+    if (!encodedSegment.includes('%')) {
+      return encodedSegment;
+    }
+    
+    // 先尝试解码一次
+    let decoded = decodeURIComponent(encodedSegment);
+    
+    // 检查解码后的字符串是否仍然包含编码字符（如 %E5）
+    // 如果包含，说明可能被双重编码，尝试再次解码
+    if (decoded.includes('%')) {
+      try {
+        const doubleDecoded = decodeURIComponent(decoded);
+        // 如果二次解码成功且结果不同，且不再包含编码字符，使用二次解码的结果
+        if (doubleDecoded !== decoded && !doubleDecoded.includes('%')) {
+          return doubleDecoded;
+        }
+        // 如果二次解码后仍然包含编码字符，说明可能是无效的编码，使用第一次解码的结果
+        return decoded;
+      } catch {
+        // 二次解码失败，使用第一次解码的结果
+        return decoded;
+      }
+    }
+    
+    return decoded;
+  } catch {
+    // 解码失败，返回原始值
+    return encodedSegment;
+  }
+}
 
 export async function generateStaticParams() {
   const prompts = getAllPrompts();
-  return prompts.map((prompt) => {
+  const params: Array<{ slug: string[] }> = [];
+  
+  prompts.forEach((prompt) => {
     // 将 "coding/技术栈/技术栈1/..." 转换为 ["coding", "技术栈", "技术栈1", ...]
     // 在静态导出模式下，需要对每个路径段进行 URL 编码，以支持特殊字符
     const slugArray = prompt.slug.split('/').map(segment => encodeURIComponent(segment));
-    return {
-      slug: slugArray,
-    };
+    
+    // 添加单次编码的路径
+    params.push({ slug: slugArray });
+    
+    // 添加双重编码的路径（将 % 编码为 %25），用于 GitHub Pages
+    const doubleEncodedArray = slugArray.map(segment => segment.replace(/%/g, '%25'));
+    // 只有当双重编码与单次编码不同时才添加
+    if (JSON.stringify(doubleEncodedArray) !== JSON.stringify(slugArray)) {
+      params.push({ slug: doubleEncodedArray });
+    }
   });
+  
+  return params;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string[] }> }): Promise<Metadata> {
   const resolvedParams = await params;
   // 将数组拼接回字符串，如 ["coding", "js-expert%20copy"] -> "coding/js-expert copy"
-  // 对每个路径段进行 URL 解码，以支持中文、空格、表情等特殊字符
+  // 对每个路径段进行安全解码，以支持中文、空格、表情等特殊字符，并处理可能的双重编码
   const slug = Array.isArray(resolvedParams.slug) 
-    ? resolvedParams.slug.map(segment => decodeURIComponent(segment)).join('/')
-    : decodeURIComponent(resolvedParams.slug);
+    ? resolvedParams.slug.map(segment => safeDecodeSegment(segment)).join('/')
+    : safeDecodeSegment(resolvedParams.slug);
   const prompt = getPromptBySlug(slug);
 
   if (!prompt) {
@@ -67,10 +117,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function PromptDetailPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const resolvedParams = await params;
   // 将数组拼接回字符串，如 ["coding", "js-expert%20copy"] -> "coding/js-expert copy"
-  // 对每个路径段进行 URL 解码，以支持中文、空格、表情等特殊字符
+  // 对每个路径段进行安全解码，以支持中文、空格、表情等特殊字符，并处理可能的双重编码
   const slug = Array.isArray(resolvedParams.slug) 
-    ? resolvedParams.slug.map(segment => decodeURIComponent(segment)).join('/')
-    : decodeURIComponent(resolvedParams.slug);
+    ? resolvedParams.slug.map(segment => safeDecodeSegment(segment)).join('/')
+    : safeDecodeSegment(resolvedParams.slug);
   const prompt = getPromptBySlug(slug);
 
   if (!prompt) {
@@ -195,7 +245,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-8 border-t border-neutral-900">
                 {prev ? (
                   <Link 
-                    href={`/prompts/${prev.slug.split('/').map(segment => encodeURIComponent(segment)).join('/')}`}
+                    href={`/prompts/${doubleEncodePath(prev.slug)}`}
                     className="group p-4 rounded-lg border border-neutral-800 bg-neutral-900/20 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all"
                   >
                     <div className="text-xs text-neutral-500 mb-1 flex items-center gap-1">
@@ -207,7 +257,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
 
                 {next && (
                   <Link 
-                    href={`/prompts/${next.slug.split('/').map(segment => encodeURIComponent(segment)).join('/')}`}
+                    href={`/prompts/${doubleEncodePath(next.slug)}`}
                     className="group p-4 rounded-lg border border-neutral-800 bg-neutral-900/20 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all text-right"
                   >
                     <div className="text-xs text-neutral-500 mb-1 flex items-center justify-end gap-1">
@@ -232,7 +282,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
                             <User className="w-4 h-4 text-green-400" />
                             Author
                         </h3>
-                        <Link href={`/author/${encodeURIComponent(authorProfile.name)}`} className="group block">
+                        <Link href={`/author/${doubleEncodeURIComponent(authorProfile.name)}`} className="group block">
                             <div className="flex items-center gap-3 mb-2">
                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-sm font-bold ring-2 ring-black group-hover:ring-blue-500 transition-all">
                                     {authorProfile.name[0].toUpperCase()}
@@ -260,7 +310,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
                         </h3>
                         <div className="flex flex-wrap gap-2 mb-0">
                             {prompt.tags.map(tag => (
-                                <Link key={tag} href={`/tags/${encodeURIComponent(tag)}`} className="px-2.5 py-1 rounded-md text-xs bg-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors border border-neutral-700/50">
+                                <Link key={tag} href={`/tags/${doubleEncodeURIComponent(tag)}`} className="px-2.5 py-1 rounded-md text-xs bg-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors border border-neutral-700/50">
                                     #{tag}
                                 </Link>
                             ))}

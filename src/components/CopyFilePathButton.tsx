@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { CopyButton } from "./CopyButton";
+import { doubleEncodePath } from "@/lib/utils";
 
 interface CopyFilePathButtonProps {
   slug: string;
@@ -33,7 +34,8 @@ export const CopyFilePathButton = ({ slug, className }: CopyFilePathButtonProps)
       // 构建原始文件访问 URL（添加 .md 后缀）
       // 例如: /raw/coding/技术栈/技术栈1/.../novel-writer.md
       // 或: /PromptCraft/raw/coding/技术栈/技术栈1/.../novel-writer.md
-      const encodedSlug = slug.split('/').map(segment => encodeURIComponent(segment)).join('/');
+      // 使用双重编码以兼容 GitHub Pages
+      const encodedSlug = doubleEncodePath(slug);
       const url = `${window.location.origin}${basePath}/raw/${encodedSlug}.md`;
       setFileUrl(url);
     }

@@ -2,6 +2,7 @@ import { getAllTags, getPromptsByTag } from "@/lib/prompts";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { doubleEncodePath, doubleEncodeURIComponent } from "@/lib/utils";
 
 /**
  * 安全地解码可能被编码或双重编码的标签参数
@@ -124,7 +125,7 @@ export default async function TagPage({ params }: { params: Promise<{ tag: strin
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {prompts.map((prompt) => (
             <Link 
-              href={`/prompts/${prompt.slug.split('/').map(segment => encodeURIComponent(segment)).join('/')}`} 
+              href={`/prompts/${doubleEncodePath(prompt.slug)}`} 
               key={prompt.slug} 
               className="block group h-full"
             >
@@ -142,7 +143,7 @@ export default async function TagPage({ params }: { params: Promise<{ tag: strin
                 </p>
                 <div className="flex flex-wrap gap-2 mt-auto">
                   {prompt.tags.map(t => (
-                      <Link key={t} href={`/tags/${encodeURIComponent(t)}`} className={`text-xs ${t.toLowerCase() === tag.toLowerCase() ? 'text-blue-400 font-bold' : 'text-neutral-500'}`}>#{t}</Link>
+                      <Link key={t} href={`/tags/${doubleEncodeURIComponent(t)}`} className={`text-xs ${t.toLowerCase() === tag.toLowerCase() ? 'text-blue-400 font-bold' : 'text-neutral-500'}`}>#{t}</Link>
                   ))}
                 </div>
               </div>
