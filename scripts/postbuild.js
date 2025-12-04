@@ -90,9 +90,9 @@ if (fs.existsSync(contentDir)) {
   console.log('⚠️  content directory not found, skipping raw route generation');
 }
 
-// 3. 处理动态路由的双重编码问题（仅处理标签、作者和 raw 路由）
+// 3. 处理动态路由的双重编码问题
 // GitHub Pages 可能会对 URL 进行再次编码，导致双重编码
-// 注意：prompts 路由只使用单次编码，不创建双重编码副本
+// 我们需要为包含编码字符的路径创建双重编码的路径副本
 console.log('🔧 Fixing dynamic route paths for GitHub Pages...');
 
 // 递归复制目录的通用函数
@@ -115,7 +115,7 @@ function copyDirectoryRecursive(src, dest) {
   }
 }
 
-// 递归处理包含编码字符的目录（用于标签和作者路由）
+// 递归处理包含编码字符的目录
 function processEncodedDirectories(dir, basePath = '') {
   if (!fs.existsSync(dir)) {
     return;
@@ -149,7 +149,7 @@ function processEncodedDirectories(dir, basePath = '') {
   }
 }
 
-// 处理标签页面（使用双重编码）
+// 处理标签页面
 const tagsDir = path.join(outDir, 'tags');
 if (fs.existsSync(tagsDir)) {
   processEncodedDirectories(tagsDir, 'tags');
@@ -158,15 +158,16 @@ if (fs.existsSync(tagsDir)) {
   console.log('⚠️  tags directory not found, skipping tag path fix');
 }
 
-// 提示词页面只使用单次编码，不处理双重编码
+// 处理提示词页面
 const promptsDir = path.join(outDir, 'prompts');
 if (fs.existsSync(promptsDir)) {
-  console.log('✅ Prompt pages use single encoding only (no double encoding needed)');
+  processEncodedDirectories(promptsDir, 'prompts');
+  console.log('✅ Fixed prompt page paths for GitHub Pages');
 } else {
-  console.log('⚠️  prompts directory not found');
+  console.log('⚠️  prompts directory not found, skipping prompt path fix');
 }
 
-// 处理作者页面（使用双重编码）
+// 处理作者页面
 const authorDir = path.join(outDir, 'author');
 if (fs.existsSync(authorDir)) {
   processEncodedDirectories(authorDir, 'author');
@@ -175,11 +176,12 @@ if (fs.existsSync(authorDir)) {
   console.log('⚠️  author directory not found, skipping author path fix');
 }
 
-// raw 路由只使用单次编码，不处理双重编码（与 prompts 保持一致）
+// 处理 raw 路由（虽然 raw 路由的文件是在 postbuild 中生成的，但如果有嵌套路径也需要处理）
 const rawDir = path.join(outDir, 'raw');
 if (fs.existsSync(rawDir)) {
-  console.log('✅ Raw routes use single encoding only (no double encoding needed)');
+  processEncodedDirectories(rawDir, 'raw');
+  console.log('✅ Fixed raw route paths for GitHub Pages');
 } else {
-  console.log('⚠️  raw directory not found');
+  console.log('⚠️  raw directory not found, skipping raw path fix');
 }
 
