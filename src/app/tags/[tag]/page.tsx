@@ -90,7 +90,7 @@ export default async function TagPage({ params }: { params: Promise<{ tag: strin
                 </p>
                 <div className="flex flex-wrap gap-2 mt-auto">
                   {prompt.tags.map(t => (
-                      <Link key={t} href={`/tags/${t}`} className={`text-xs ${t.toLowerCase() === tag.toLowerCase() ? 'text-blue-400 font-bold' : 'text-neutral-500'}`}>#{t}</Link>
+                      <Link key={t} href={`/tags/${encodeURIComponent(t)}`} className={`text-xs ${t.toLowerCase() === tag.toLowerCase() ? 'text-blue-400 font-bold' : 'text-neutral-500'}`}>#{t}</Link>
                   ))}
                 </div>
               </div>

@@ -171,7 +171,7 @@ export const PromptGallery = ({
                             </p>
                             <div className="flex flex-wrap gap-2 mt-auto pointer-events-auto relative z-20">
                                 {prompt.tags.map(tag => (
-                                    <Link key={tag} href={`/tags/${tag}`} className="text-xs text-neutral-500 hover:text-blue-400 transition-colors hover:underline">
+                                    <Link key={tag} href={`/tags/${encodeURIComponent(tag)}`} className="text-xs text-neutral-500 hover:text-blue-400 transition-colors hover:underline">
                                     #{tag}
                                     </Link>
                                 ))}
