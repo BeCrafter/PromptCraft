@@ -2,7 +2,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn, doubleEncodePath, doubleEncodeURIComponent } from "@/lib/utils";
+import { cn, doubleEncodeURIComponent } from "@/lib/utils";
 import { Prompt } from "@/lib/prompts";
 import Fuse from "fuse.js";
 import { Search, X } from "lucide-react";
@@ -153,7 +153,7 @@ export const PromptGallery = ({
                         >
                         <div className="group h-full relative">
                             <Link 
-                              href={`/prompts/${doubleEncodePath(prompt.slug)}`} 
+                              href={`/prompts/${prompt.slug.split('/').map(segment => encodeURIComponent(segment)).join('/')}`} 
                               className="absolute inset-0 z-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500" 
                             />
                             

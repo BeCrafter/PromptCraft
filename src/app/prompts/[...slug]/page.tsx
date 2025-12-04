@@ -7,7 +7,7 @@ import { CopyButton } from "@/components/CopyButton";
 import { CopyFilePathButton } from "@/components/CopyFilePathButton";
 import { ArrowLeft, Tag, User, Layers, BookOpen, ChevronLeft, ChevronRight, Link as LinkIcon } from "lucide-react";
 import type { Metadata } from "next";
-import { doubleEncodePath, doubleEncodeURIComponent } from "@/lib/utils";
+import { doubleEncodeURIComponent } from "@/lib/utils";
 
 /**
  * 安全地解码可能被编码或双重编码的路径段
@@ -49,25 +49,15 @@ function safeDecodeSegment(encodedSegment: string): string {
 
 export async function generateStaticParams() {
   const prompts = getAllPrompts();
-  const params: Array<{ slug: string[] }> = [];
-  
-  prompts.forEach((prompt) => {
+  // prompts 路由只使用单次编码，不生成双重编码路径
+  return prompts.map((prompt) => {
     // 将 "coding/技术栈/技术栈1/..." 转换为 ["coding", "技术栈", "技术栈1", ...]
     // 在静态导出模式下，需要对每个路径段进行 URL 编码，以支持特殊字符
     const slugArray = prompt.slug.split('/').map(segment => encodeURIComponent(segment));
-    
-    // 添加单次编码的路径
-    params.push({ slug: slugArray });
-    
-    // 添加双重编码的路径（将 % 编码为 %25），用于 GitHub Pages
-    const doubleEncodedArray = slugArray.map(segment => segment.replace(/%/g, '%25'));
-    // 只有当双重编码与单次编码不同时才添加
-    if (JSON.stringify(doubleEncodedArray) !== JSON.stringify(slugArray)) {
-      params.push({ slug: doubleEncodedArray });
-    }
+    return {
+      slug: slugArray,
+    };
   });
-  
-  return params;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string[] }> }): Promise<Metadata> {
@@ -245,7 +235,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-8 border-t border-neutral-900">
                 {prev ? (
                   <Link 
-                    href={`/prompts/${doubleEncodePath(prev.slug)}`}
+                    href={`/prompts/${prev.slug.split('/').map(segment => encodeURIComponent(segment)).join('/')}`}
                     className="group p-4 rounded-lg border border-neutral-800 bg-neutral-900/20 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all"
                   >
                     <div className="text-xs text-neutral-500 mb-1 flex items-center gap-1">
@@ -257,7 +247,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
 
                 {next && (
                   <Link 
-                    href={`/prompts/${doubleEncodePath(next.slug)}`}
+                    href={`/prompts/${next.slug.split('/').map(segment => encodeURIComponent(segment)).join('/')}`}
                     className="group p-4 rounded-lg border border-neutral-800 bg-neutral-900/20 hover:bg-neutral-900/60 hover:border-neutral-700 transition-all text-right"
                   >
                     <div className="text-xs text-neutral-500 mb-1 flex items-center justify-end gap-1">

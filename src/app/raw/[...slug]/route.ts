@@ -46,27 +46,17 @@ function safeDecodeSegment(encodedSegment: string): string {
 
 export async function generateStaticParams() {
   const prompts = getAllPrompts();
-  const params: Array<{ slug: string[] }> = [];
-  
-  prompts.forEach((prompt) => {
+  // raw 路由只使用单次编码，与 postbuild.js 中的生成逻辑保持一致
+  return prompts.map((prompt) => {
     // 对每个路径段进行 URL 编码，支持中文、空格、表情等特殊字符
     // 添加 .md 后缀，URL 格式：/raw/coding/js-expert.md
     const slugArray = prompt.slug.split('/').map(segment => encodeURIComponent(segment));
     // 最后一个路径段添加 .md 后缀
     slugArray[slugArray.length - 1] = slugArray[slugArray.length - 1] + '.md';
-    
-    // 添加单次编码的路径
-    params.push({ slug: [...slugArray] });
-    
-    // 添加双重编码的路径（将 % 编码为 %25），用于 GitHub Pages
-    const doubleEncodedArray = slugArray.map(segment => segment.replace(/%/g, '%25'));
-    // 只有当双重编码与单次编码不同时才添加
-    if (JSON.stringify(doubleEncodedArray) !== JSON.stringify(slugArray)) {
-      params.push({ slug: doubleEncodedArray });
-    }
+    return {
+      slug: slugArray,
+    };
   });
-  
-  return params;
 }
 
 export async function GET(
