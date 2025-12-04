@@ -3,16 +3,68 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
+/**
+ * 安全地解码可能被编码或双重编码的标签参数
+ * 处理 GitHub Pages 可能导致的编码问题
+ */
+function safeDecodeTag(encodedTag: string): string {
+  try {
+    // 如果参数不包含 %，说明没有被编码，直接返回
+    if (!encodedTag.includes('%')) {
+      return encodedTag;
+    }
+    
+    // 先尝试解码一次
+    let decoded = decodeURIComponent(encodedTag);
+    
+    // 检查解码后的字符串是否仍然包含编码字符（如 %E5）
+    // 如果包含，说明可能被双重编码，尝试再次解码
+    if (decoded.includes('%')) {
+      try {
+        const doubleDecoded = decodeURIComponent(decoded);
+        // 如果二次解码成功且结果不同，且不再包含编码字符，使用二次解码的结果
+        if (doubleDecoded !== decoded && !doubleDecoded.includes('%')) {
+          return doubleDecoded;
+        }
+        // 如果二次解码后仍然包含编码字符，说明可能是无效的编码，使用第一次解码的结果
+        return decoded;
+      } catch {
+        // 二次解码失败，使用第一次解码的结果
+        return decoded;
+      }
+    }
+    
+    return decoded;
+  } catch {
+    // 解码失败，返回原始值
+    return encodedTag;
+  }
+}
+
 export async function generateStaticParams() {
   const tags = getAllTags();
-  return tags.map((tag) => ({
-    tag: encodeURIComponent(tag),
-  }));
+  // 生成两种路径：单次编码和双重编码
+  // 这样可以同时支持本地开发（单次编码）和 GitHub Pages（可能双重编码）
+  const params: Array<{ tag: string }> = [];
+  
+  tags.forEach((tag) => {
+    const encoded = encodeURIComponent(tag);
+    // 添加单次编码的路径
+    params.push({ tag: encoded });
+    
+    // 添加双重编码的路径（将 % 编码为 %25），用于 GitHub Pages
+    const doubleEncoded = encoded.replace(/%/g, '%25');
+    if (doubleEncoded !== encoded) {
+      params.push({ tag: doubleEncoded });
+    }
+  });
+  
+  return params;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ tag: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
-  const tag = decodeURIComponent(resolvedParams.tag);
+  const tag = safeDecodeTag(resolvedParams.tag);
   const prompts = getPromptsByTag(tag);
 
   if (prompts.length === 0) {
@@ -43,7 +95,7 @@ export async function generateMetadata({ params }: { params: Promise<{ tag: stri
 
 export default async function TagPage({ params }: { params: Promise<{ tag: string }> }) {
   const resolvedParams = await params;
-  const tag = decodeURIComponent(resolvedParams.tag);
+  const tag = safeDecodeTag(resolvedParams.tag);
   const prompts = getPromptsByTag(tag);
 
   if (prompts.length === 0) {

@@ -138,7 +138,8 @@ export function getAllTags(): string[] {
 
 export function getPromptsByTag(tag: string): Prompt[] {
   const prompts = getAllPrompts();
-  const normalizedTag = decodeURIComponent(tag).toLowerCase();
+  // tag 参数应该已经是解码后的字符串，直接使用
+  const normalizedTag = tag.toLowerCase();
   return prompts.filter(prompt => 
     prompt.tags.some(t => t.toLowerCase() === normalizedTag)
   );

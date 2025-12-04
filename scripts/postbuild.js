@@ -90,3 +90,64 @@ if (fs.existsSync(contentDir)) {
   console.log('⚠️  content directory not found, skipping raw route generation');
 }
 
+// 3. 处理标签页面的双重编码问题
+// GitHub Pages 可能会对 URL 进行再次编码，导致双重编码
+// 我们需要为标签页面创建双重编码的路径副本
+console.log('🔧 Fixing tag page paths for GitHub Pages...');
+
+const tagsDir = path.join(outDir, 'tags');
+if (fs.existsSync(tagsDir)) {
+  // 递归处理所有标签目录
+  function processTagDirectories(dir) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      
+      if (entry.isDirectory()) {
+        // 检查目录名是否包含编码字符（%）
+        if (entry.name.includes('%')) {
+          // 对目录名进行双重编码（将 % 编码为 %25）
+          const doubleEncodedName = entry.name.replace(/%/g, '%25');
+          const doubleEncodedPath = path.join(dir, doubleEncodedName);
+          
+          // 如果双重编码的路径不存在，创建它
+          if (!fs.existsSync(doubleEncodedPath)) {
+            // 复制整个目录
+            copyDirectoryRecursive(fullPath, doubleEncodedPath);
+            console.log(`  ✓ Created double-encoded path: ${entry.name} -> ${doubleEncodedName}`);
+          }
+        }
+        
+        // 递归处理子目录
+        processTagDirectories(fullPath);
+      }
+    }
+  }
+  
+  // 递归复制目录
+  function copyDirectoryRecursive(src, dest) {
+    if (!fs.existsSync(dest)) {
+      fs.mkdirSync(dest, { recursive: true });
+    }
+    
+    const entries = fs.readdirSync(src, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      const srcPath = path.join(src, entry.name);
+      const destPath = path.join(dest, entry.name);
+      
+      if (entry.isDirectory()) {
+        copyDirectoryRecursive(srcPath, destPath);
+      } else {
+        fs.copyFileSync(srcPath, destPath);
+      }
+    }
+  }
+  
+  processTagDirectories(tagsDir);
+  console.log('✅ Fixed tag page paths for GitHub Pages');
+} else {
+  console.log('⚠️  tags directory not found, skipping tag path fix');
+}
+
