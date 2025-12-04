@@ -12,7 +12,7 @@ export async function generateStaticParams() {
   const prompts = getAllPrompts();
   return prompts.map((prompt) => {
     // 将 "coding/技术栈/技术栈1/..." 转换为 ["coding", "技术栈", "技术栈1", ...]
-    // 对每个路径段进行 URL 编码，以支持中文、空格、表情等特殊字符
+    // 在静态导出模式下，需要对每个路径段进行 URL 编码，以支持特殊字符
     const slugArray = prompt.slug.split('/').map(segment => encodeURIComponent(segment));
     return {
       slug: slugArray,
@@ -22,6 +22,8 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string[] }> }): Promise<Metadata> {
   const resolvedParams = await params;
+  // 将数组拼接回字符串，如 ["coding", "js-expert%20copy"] -> "coding/js-expert copy"
+  // 对每个路径段进行 URL 解码，以支持中文、空格、表情等特殊字符
   const slug = Array.isArray(resolvedParams.slug) 
     ? resolvedParams.slug.map(segment => decodeURIComponent(segment)).join('/')
     : decodeURIComponent(resolvedParams.slug);
@@ -64,7 +66,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function PromptDetailPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const resolvedParams = await params;
-  // 将数组拼接回字符串，如 ["coding", "%E6%8A%80%E6%9C%AF%E6%A0%88", ...] -> "coding/技术栈/..."
+  // 将数组拼接回字符串，如 ["coding", "js-expert%20copy"] -> "coding/js-expert copy"
   // 对每个路径段进行 URL 解码，以支持中文、空格、表情等特殊字符
   const slug = Array.isArray(resolvedParams.slug) 
     ? resolvedParams.slug.map(segment => decodeURIComponent(segment)).join('/')
