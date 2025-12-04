@@ -116,7 +116,33 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
             
             {/* Header Section (Title & Desc) */}
             <div>
-               <div className="flex items-center gap-2 mb-6 min-w-0 w-full overflow-hidden">
+               <div 
+                 className="flex items-center gap-2 mb-6 min-w-0 w-full overflow-hidden relative"
+                 style={{
+                  paddingBottom: '0.8rem',
+                   /*padding: '0.8rem 0',
+                   background: 'linear-gradient(to right, #000000 0%, #716cf71f 50%, #000000 100%)'*/
+                 }}
+               >
+                  {/* 渐变底部边框：中间粗高亮，两头细且暗 */}
+                  <div 
+                    className="absolute bottom-0 left-0 right-0"
+                    style={{
+                      height: '1px',
+                      background: 'linear-gradient(to right, transparent 0%, #1a1a1a 15%, #262626 30%, #404040 50%, #262626 70%, #1a1a1a 85%, transparent 100%)',
+                      boxShadow: '0 0 4px rgba(113, 108, 247, 0.4), 0 0 8px rgba(113, 108, 247, 0.2)'
+                    }}
+                  ></div>
+                  {/* 中间高亮层 */}
+                  <div 
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2"
+                    style={{
+                      width: '40%',
+                      height: '2px',
+                      background: 'linear-gradient(to right, transparent, #716cf7, transparent)',
+                      opacity: 0.6
+                    }}
+                  ></div>
                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider flex items-center gap-1 flex-shrink-0">
                     <Layers className="w-3 h-3" />
                     {prompt.category}
@@ -196,8 +222,8 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
           <div className="lg:col-span-4">
             <div className="sticky top-6 space-y-6">
                 
-                {/* Metadata Card */}
-                <div className="p-5 rounded-xl bg-neutral-900/30 border border-neutral-800">
+                {/* Metadata Card - 优化顶部边框，使其与左侧更协调 */}
+                <div className="p-5 rounded-xl bg-neutral-900/30 border border-neutral-800 border-t-neutral-800/50">
                     {/* Author Section with Config Data */}
                     <div className="mb-6">
                         <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
