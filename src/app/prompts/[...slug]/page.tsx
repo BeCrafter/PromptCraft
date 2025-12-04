@@ -6,6 +6,7 @@ import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { CopyButton } from "@/components/CopyButton";
 import { CopyFilePathButton } from "@/components/CopyFilePathButton";
 import { ArrowLeft, Tag, User, Layers, BookOpen, ChevronLeft, ChevronRight, Link as LinkIcon } from "lucide-react";
+import type { Metadata } from "next";
 
 export async function generateStaticParams() {
   const prompts = getAllPrompts();
@@ -17,6 +18,48 @@ export async function generateStaticParams() {
       slug: slugArray,
     };
   });
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string[] }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  const slug = Array.isArray(resolvedParams.slug) 
+    ? resolvedParams.slug.map(segment => decodeURIComponent(segment)).join('/')
+    : decodeURIComponent(resolvedParams.slug);
+  const prompt = getPromptBySlug(slug);
+
+  if (!prompt) {
+    return {
+      title: "提示词未找到",
+    };
+  }
+
+  const description = prompt.description || `在 PromptCraft（提示词工坊）查看 ${prompt.title} 提示词。高质量AI提示词，专业制作，生产就绪。`;
+  const keywords = [
+    prompt.title,
+    ...prompt.tags,
+    prompt.category,
+    "PromptCraft",
+    "提示词工坊",
+    "AI提示词",
+    "ChatGPT提示词"
+  ];
+
+  return {
+    title: `${prompt.title} - 提示词详情`,
+    description,
+    keywords,
+    openGraph: {
+      title: `${prompt.title} | PromptCraft - 提示词工坊`,
+      description,
+      type: "article",
+      tags: prompt.tags,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${prompt.title} | PromptCraft`,
+      description,
+    },
+  };
 }
 
 export default async function PromptDetailPage({ params }: { params: Promise<{ slug: string[] }> }) {
@@ -56,10 +99,13 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 relative z-10">
         
         {/* Breadcrumb / Back */}
-        <div className="mb-8">
+        <div className="mb-8 flex items-center justify-between">
            <Link href="/prompts" className="inline-flex items-center text-sm text-neutral-500 hover:text-white transition-colors group">
               <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
               Back to Library
+           </Link>
+           <Link href="/" className="text-sm text-neutral-500 hover:text-blue-400 transition-colors">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 font-semibold">PromptCraft</span>
            </Link>
         </div>
 
@@ -245,7 +291,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ s
 
         {/* Footer simple */}
         <div className="mt-20 pt-8 border-t border-neutral-900 text-center text-neutral-600 text-sm">
-            © 2025 BeCrafter Prompts. Open Source Intelligence.
+            © 2025 <span className="text-blue-400">PromptCraft</span> - 提示词工坊. Open Source Intelligence.
         </div>
       </div>
     </div>

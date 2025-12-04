@@ -3,12 +3,45 @@ import { getAuthorProfile } from "@/lib/authors";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { User, ArrowLeft, Layers, Hash, Sparkles, Trophy } from "lucide-react";
+import type { Metadata } from "next";
 
 export async function generateStaticParams() {
   const authors = getAllAuthors();
   return authors.map((author) => ({
     name: encodeURIComponent(author),
   }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ name: string }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  const name = decodeURIComponent(resolvedParams.name);
+  const prompts = getPromptsByAuthor(name);
+  const profile = getAuthorProfile(name);
+
+  if (prompts.length === 0) {
+    return {
+      title: "作者未找到",
+    };
+  }
+
+  const description = `${profile.name} 在 PromptCraft（提示词工坊）贡献了 ${prompts.length} 个高质量AI提示词。${profile.bio || ''}`;
+
+  return {
+    title: `${profile.name} - 作者页面`,
+    description,
+    keywords: [
+      profile.name,
+      "PromptCraft",
+      "提示词工坊",
+      "AI提示词作者",
+      ...prompts.map(p => p.category),
+    ],
+    openGraph: {
+      title: `${profile.name} | PromptCraft - 提示词工坊`,
+      description,
+      type: "profile",
+    },
+  };
 }
 
 export default async function AuthorPage({ params }: { params: Promise<{ name: string }> }) {
@@ -39,10 +72,13 @@ export default async function AuthorPage({ params }: { params: Promise<{ name: s
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 -mt-32">
         {/* Back Link */}
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between">
            <Link href="/prompts" className="inline-flex items-center px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-sm text-neutral-300 hover:text-white hover:bg-white/10 transition-all group">
               <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
               Back to Library
+           </Link>
+           <Link href="/" className="text-sm text-neutral-500 hover:text-blue-400 transition-colors">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 font-semibold">PromptCraft</span>
            </Link>
         </div>
 

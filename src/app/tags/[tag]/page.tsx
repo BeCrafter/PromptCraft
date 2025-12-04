@@ -1,12 +1,44 @@
 import { getAllTags, getPromptsByTag } from "@/lib/prompts";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 
 export async function generateStaticParams() {
   const tags = getAllTags();
   return tags.map((tag) => ({
     tag: encodeURIComponent(tag),
   }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ tag: string }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  const tag = decodeURIComponent(resolvedParams.tag);
+  const prompts = getPromptsByTag(tag);
+
+  if (prompts.length === 0) {
+    return {
+      title: "标签未找到",
+    };
+  }
+
+  const description = `在 PromptCraft（提示词工坊）浏览标签为 "${tag}" 的 ${prompts.length} 个高质量AI提示词。`;
+
+  return {
+    title: `#${tag} - 标签页面`,
+    description,
+    keywords: [
+      tag,
+      "PromptCraft",
+      "提示词工坊",
+      "AI提示词",
+      "标签",
+      ...prompts.map(p => p.category),
+    ],
+    openGraph: {
+      title: `#${tag} | PromptCraft - 提示词工坊`,
+      description,
+    },
+  };
 }
 
 export default async function TagPage({ params }: { params: Promise<{ tag: string }> }) {
@@ -22,9 +54,14 @@ export default async function TagPage({ params }: { params: Promise<{ tag: strin
     <div className="min-h-screen bg-black text-white pt-24 pb-20 px-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-12">
-           <Link href="/prompts" className="text-sm text-neutral-500 hover:text-neutral-300 transition-colors mb-6 inline-block">
-              ← Back to All Prompts
-           </Link>
+           <div className="flex items-center justify-between mb-6">
+             <Link href="/prompts" className="text-sm text-neutral-500 hover:text-neutral-300 transition-colors inline-block">
+                ← Back to All Prompts
+             </Link>
+             <Link href="/" className="text-sm text-neutral-500 hover:text-blue-400 transition-colors">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 font-semibold">PromptCraft</span>
+             </Link>
+           </div>
            <h1 className="text-4xl font-bold flex items-center gap-3">
              <span className="text-blue-500">#</span>
              {tag}

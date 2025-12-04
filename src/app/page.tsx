@@ -80,7 +80,7 @@ export default function Home() {
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 backdrop-blur-sm">
             <Sparkles className="w-4 h-4 text-blue-400" />
-            <span className="text-sm text-neutral-300">Curated Prompt Collection</span>
+            <span className="text-sm text-neutral-300">PromptCraft - 提示词工坊</span>
           </div>
         </motion.div>
 
@@ -182,6 +182,8 @@ export default function Home() {
             <span className="text-blue-400">100+</span> Premium Prompts • 
             <span className="text-purple-400"> Expertly</span> Curated • 
             <span className="text-pink-400"> Production</span> Ready
+            <br />
+            <span className="text-neutral-600 mt-2 block">© 2025 PromptCraft - 提示词工坊</span>
           </p>
         </motion.div>
       </div>
