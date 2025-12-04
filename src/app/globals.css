@@ -13,3 +13,17 @@ body {
   background-color: var(--background);
   color: var(--foreground);
 }
+
+@layer utilities {
+  .animate-pulse-delay {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .delay-1000 {
+    animation-delay: 1s;
+  }
+  
+  .delay-2000 {
+    animation-delay: 2s;
+  }
+}
