@@ -30,11 +30,11 @@ export const CopyFilePathButton = ({ slug, className }: CopyFilePathButtonProps)
         }
       }
       
-      // 构建原始文件访问 URL
-      // 例如: /raw/coding/技术栈/技术栈1/.../novel-writer
-      // 或: /PromptCraft/raw/coding/技术栈/技术栈1/.../novel-writer
+      // 构建原始文件访问 URL（添加 .md 后缀）
+      // 例如: /raw/coding/技术栈/技术栈1/.../novel-writer.md
+      // 或: /PromptCraft/raw/coding/技术栈/技术栈1/.../novel-writer.md
       const encodedSlug = slug.split('/').map(segment => encodeURIComponent(segment)).join('/');
-      const url = `${window.location.origin}${basePath}/raw/${encodedSlug}`;
+      const url = `${window.location.origin}${basePath}/raw/${encodedSlug}.md`;
       setFileUrl(url);
     }
   }, [slug]);

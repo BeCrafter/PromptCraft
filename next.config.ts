@@ -30,6 +30,8 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  // 添加 trailingSlash 以确保 GitHub Pages 正确处理路径
+  trailingSlash: true,
   // 自动检测 basePath，支持 GitHub Pages 子目录部署
   // 如果部署到根路径（username.github.io），basePath 为空
   // 如果部署到子目录（username.github.io/repo-name），basePath 为 "/repo-name"

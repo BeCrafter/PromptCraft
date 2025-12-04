@@ -10,7 +10,10 @@ export async function generateStaticParams() {
   const prompts = getAllPrompts();
   return prompts.map((prompt) => {
     // 对每个路径段进行 URL 编码，支持中文、空格、表情等特殊字符
+    // 添加 .md 后缀，URL 格式：/raw/coding/js-expert.md
     const slugArray = prompt.slug.split('/').map(segment => encodeURIComponent(segment));
+    // 最后一个路径段添加 .md 后缀
+    slugArray[slugArray.length - 1] = slugArray[slugArray.length - 1] + '.md';
     return {
       slug: slugArray,
     };
@@ -23,9 +26,14 @@ export async function GET(
 ) {
   const resolvedParams = await params;
   // 解码 slug，支持中文、空格、表情等特殊字符
-  const slug = Array.isArray(resolvedParams.slug) 
+  let slug = Array.isArray(resolvedParams.slug) 
     ? resolvedParams.slug.map(segment => decodeURIComponent(segment)).join('/')
     : decodeURIComponent(resolvedParams.slug);
+  
+  // 如果 URL 以 .md 结尾，去掉 .md 后缀（用于匹配 prompt slug）
+  if (slug.endsWith('.md')) {
+    slug = slug.slice(0, -3);
+  }
   
   const prompt = getPromptBySlug(slug);
 
