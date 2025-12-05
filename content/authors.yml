@@ -1,4 +1,16 @@
 authors:
+  - name: 提示词档案馆
+    role: 提示词策展人 | 提示词收集者
+    bio: 致力于收集和整理互联网上所有开发者分享的提示词，为AI应用开发者提供丰富的提示词资源库。 
+    social:
+      github: https://github.com/BeCrafter
+  
+  - name: 江树
+    role: 深度学习研究员 | 提示工程师 | 科幻小说作家 | 人生探索者
+    bio: 一名深度学习研究员、提示工程师，兼职科幻小说作家，同时也是一名全职的人生探索者。
+    social:
+      github: https://github.com/yzfly
+
   - name: Sean
     role: Prompt Architect
     bio: Full-stack developer and AI enthusiast. Specializing in structured prompts and system design. Creator of the BeCrafter library.
